@@ -15,6 +15,7 @@
 TSL2561 tsl(TSL2561_ADDR_FLOAT); 
 
 void setup(void) {
+  Wire.begin();
   Serial.begin(9600);
   
   if (tsl.begin()) {
@@ -46,11 +47,11 @@ void loop(void) {
   //uint16_t x = tsl.getLuminosity(TSL2561_FULLSPECTRUM);
   uint16_t ir = tsl.getLuminosity(TSL2561_INFRARED);
   
-  Serial.println(x, DEC);
+  //Serial.println(x, DEC);
 
   // More advanced data read example. Read 32 bits with top 16 bits IR, bottom 16 bits full spectrum
   // That way you can do whatever math and comparisons you want!
-  uint32_t lum = tsl.getFullLuminosity();
+  //uint32_t lum = tsl.getFullLuminosity();
   //uint16_t ir, full;
   //ir = lum >> 16;
   //full = lum & 0xFFFF;
@@ -58,11 +59,18 @@ void loop(void) {
   //Serial.print("LUM: "); Serial.print(lum);   Serial.print("\t\t");
   //Serial.print("Full: "); Serial.print(full);   Serial.print("\t");
   //Serial.print("Visible: "); Serial.print(full - ir);   Serial.print("\t");
-  int sensorin = analogRead(A4);
-  Serial.println(sensorin);
+  //int sensorin = analogRead(A4);
+ // Serial.println(sensorin);
   
   //Serial.print("Lux: "); Serial.println(tsl.calculateLux(full, ir));
-  
-  delay(100); 
+  Wire.requestFrom(1, 1);    // request 6 bytes from slave device #2
+
+  while(Wire.available())    // slave may send less than requested
+  { 
+    int c = Wire.read();    // receive a byte as character
+    Serial.print(c);         // print the character
+  }
+
+  delay(500);
 }
 
