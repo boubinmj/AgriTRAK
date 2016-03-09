@@ -100,6 +100,8 @@ void setup(void)
 
   pinMode(3, INPUT);
   pinMode(4, INPUT);
+
+  pinMode(A4, INPUT);
   
   Serial.begin(9600);
   Serial.println("Light Sensor Test"); Serial.println("");
@@ -153,7 +155,7 @@ void loop(void)
   int soil_state = soil_moisture/400;
   int light_state = event.light/24000;
 
-  int soil = digitalRead(4);
+  int soil = analogRead(A4);
   int light = digitalRead(3);
 
   Serial.print("moisture: ");
@@ -173,46 +175,8 @@ void loop(void)
   Serial.print("state: ");
   Serial.println(state);
 
-  bool pushbutton_soil = false;
-  bool pushbutton_light = false;
 
-  if(soil > 5){
-    pushbutton_soil = true;
-  }
-
-  if(light > 5){
-    pushbutton_light = true;
-  }
-
-  if(pushbutton_soil){
-    switch(soil_state){
-    case 0:
-      digitalWrite(LED_GREEN, HIGH);
-      break;
-    case 1:
-      digitalWrite(LED_YELLOW, HIGH);
-      break;
-    case 2:
-      digitalWrite(LED_RED, HIGH);
-      break;
-    }
-  }
-
-  else if(pushbutton_light){
-    switch(light_state){
-    case 0:
-      digitalWrite(LED_RED, HIGH);
-      break;
-    case 1:
-      digitalWrite(LED_YELLOW, HIGH);
-      break;
-    case 2:
-      digitalWrite(LED_GREEN, HIGH);
-      break;
-    }
-  }
-
-else{
+if(soil < 1000){
   switch(state){
     case 0:
       digitalWrite(LED_GREEN, HIGH);
@@ -247,6 +211,37 @@ else{
       break;    
   } 
 }
+
+else{
+    switch(soil_state){
+    case 0:
+      digitalWrite(LED_GREEN, HIGH);
+      break;
+    case 1:
+      digitalWrite(LED_YELLOW, HIGH);
+      break;
+    case 2:
+      digitalWrite(LED_RED, HIGH);
+      break;
+    }
+
+    delay(1000);
+    digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_YELLOW, LOW);
+  digitalWrite(LED_GREEN,LOW);
+  
+    switch(light_state){
+    case 0:
+      digitalWrite(LED_RED, HIGH);
+      break;
+    case 1:
+      digitalWrite(LED_YELLOW, HIGH);
+      break;
+    case 2:
+      digitalWrite(LED_GREEN, HIGH);
+      break;
+    }
+  }
   
   
   delay(1000);
@@ -254,6 +249,5 @@ else{
   digitalWrite(LED_RED, LOW);
   digitalWrite(LED_YELLOW, LOW);
   digitalWrite(LED_GREEN,LOW);
-  pushbutton_soil = false;
-  pushbutton_light = false;
+
 }
