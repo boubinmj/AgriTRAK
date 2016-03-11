@@ -18,12 +18,13 @@ void setup(void) {
 void loop(void) {
   /*read temperature from Temp Sensor*/
   float temperature = getTemp();
-  Serial.print("Water temp: ");
-  Serial.println(temperature);
+  float tempF = temperature*(9.0/5.0)+32;
+  Serial.print("Water temp (): ");
+  Serial.println(tempF);
 
   /*If temp is below 15 deg celcius, red led is on. If temp is above 15
   deg, green led is on*/
-  if(temperature < 15){
+  if(temperature < 19){
     digitalWrite(LED_RED, HIGH);
     digitalWrite(LED_GREEN, LOW);
   }
@@ -40,7 +41,7 @@ void loop(void) {
 
 
   float voltage = sensorValue * (3.3/1023.0);
-  Serial.print("eTape: ");
+  Serial.print("eTape resistance: ");
   Serial.println(sensorValue);
   
   delay(1000); //just here to slow down the output so it is easier to read
