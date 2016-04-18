@@ -1,7 +1,13 @@
 #include <Wire.h>
+#include "OneWire.h"
 #include "Adafruit_Sensor.h"
 #include "Adafruit_TSL2561_U.h"
 #include "group.h"
+
+int SensorPin = 10; 
+int UVOUT = A2; //Output from the sensor
+int REF_3V3 = A1; //3.3V power on the Arduino board
+OneWire ds(SensorPin); 
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
@@ -87,6 +93,82 @@ void configureSensor(void)
   Serial.println("------------------------------------");
 }
 */
+
+//Takes an average of readings on a given pin
+//Returns the average
+int averageAnalogRead(int pinToRead)
+{
+  byte numberOfReadings = 8;
+  unsigned int runningValue = 0; 
+
+  for(int x = 0 ; x < numberOfReadings ; x++)
+    runningValue += analogRead(pinToRead);
+  runningValue /= numberOfReadings;
+
+  return(runningValue);  
+}
+
+//The Arduino Map function but for floats
+//From: http://forum.arduino.cc/index.php?topic=3922.0
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+/**************************************************************************/
+/*
+    Method converts Temp Sensor Volage input to Degrees Celcius
+*/
+/**************************************************************************/
+
+float getTemp(){
+
+
+byte data[12];
+byte addr[8];
+
+if ( !ds.search(addr)) {
+//no more sensors on chain, reset search
+ds.reset_search();
+return -1000;
+}
+
+if ( OneWire::crc8( addr, 7) != addr[7]) {
+Serial.println("CRC is not valid!");
+return -1000;
+}
+
+if ( addr[0] != 0x10 && addr[0] != 0x28) {
+Serial.print("Device is not recognized");
+return -1000;
+}
+
+ds.reset();
+ds.select(addr);
+ds.write(0x44,1); 
+
+byte present = ds.reset();
+ds.select(addr); 
+ds.write(0xBE); 
+
+
+for (int i = 0; i < 9; i++) { 
+data[i] = ds.read();
+}
+
+ds.reset_search();
+
+byte MSB = data[1];
+byte LSB = data[0];
+
+float TRead = ((MSB << 8) | LSB); 
+float Temperature = TRead / 16;
+
+return Temperature;
+
+}
+
+
 /**************************************************************************/
 /*
     Arduino setup function (automatically called at startup)
@@ -101,6 +183,9 @@ void setup(void)
   
   Serial.begin(9600);
   Serial.println("Soil"); Serial.println("");
+
+  pinMode(UVOUT, INPUT);
+  pinMode(REF_3V3, INPUT);
   
   /* Initialise the sensor */
  // if(!tsl.begin())
@@ -119,6 +204,7 @@ void setup(void)
   /* We're ready to go! */
   Serial.println("");
 }
+
 
 void loop(void) 
 {  
@@ -141,10 +227,21 @@ void loop(void)
   /* Calculate Soil Moisture Level using Sparkfun 13322 VIN pin */
 
   int soil = analogRead(A3);
+  float temp = getTemp();
+
+  int uvLevel = averageAnalogRead(UVOUT);
+  int refLevel = averageAnalogRead(REF_3V3);
+
+  float outputVoltage = 3.3 / refLevel * uvLevel;
+  float uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0);
 
   Serial.print("soil_in");
   Serial.println("");
   Serial.println(soil);
+  Serial.println("temperature");
+  Serial.println(temp);
+   Serial.print(" / UV Intensity (mW/cm^2): ");
+  Serial.println(uvIntensity);
   //Serial.print("light");
   //Serial.println(light);
   delay(500);
