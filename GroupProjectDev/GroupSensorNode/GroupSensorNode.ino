@@ -1,13 +1,9 @@
 #include <Wire.h>
 #include "OneWire.h"
-#include "Adafruit_Sensor.h"
 #include "Adafruit_TSL2561_U.h"
 #include "group.h"
 
-int SensorPin = 10; 
-int UVOUT = A2; //Output from the sensor
-int REF_3V3 = A1; //3.3V power on the Arduino board
-OneWire ds(SensorPin); 
+OneWire ds(TempIn); 
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
@@ -50,7 +46,7 @@ Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 1234
     sensor API sensor_t type (see Adafruit_Sensor for more information)
 */
 /**************************************************************************/
-/*
+
 void displaySensorDetails(void)
 {
   sensor_t sensor;
@@ -66,33 +62,33 @@ void displaySensorDetails(void)
   Serial.println("");
   delay(500);
 }
-*/
+
 /**************************************************************************/
 /*
     Configures the gain and integration time for the TSL2561
 */
 /**************************************************************************/
-/*
+
 void configureSensor(void)
 {
   /* You can also manually set the gain or enable auto-gain support */
-  // tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
+   //tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
    //tsl.setGain(TSL2561_GAIN_16X);     /* 16x gain ... use in low light to boost sensitivity */
-  //tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
+  tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
   
   /* Changing the integration time gives you better sensor resolution (402ms = 16-bit data) */
-  //tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
+  tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
   // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
   // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
 
   /* Update these values depending on what you've set above! */  
-  /*
+  
   Serial.println("------------------------------------");
   Serial.print  ("Gain:         "); Serial.println("Auto");
   Serial.print  ("Timing:       "); Serial.println("13 ms");
   Serial.println("------------------------------------");
 }
-*/
+
 
 //Takes an average of readings on a given pin
 //Returns the average
@@ -177,29 +173,28 @@ return Temperature;
 void setup(void) 
 {
   /*PIN initialization*/
-  pinMode(MOISTURE, INPUT);
 
-  pinMode(A3, INPUT);
+  pinMode(MoistureIn, INPUT);
   
   Serial.begin(9600);
   Serial.println("Soil"); Serial.println("");
 
-  pinMode(UVOUT, INPUT);
-  pinMode(REF_3V3, INPUT);
+  pinMode(UVIn, INPUT);
+  pinMode(UVRef, INPUT);
   
   /* Initialise the sensor */
- // if(!tsl.begin())
-  //{
+  if(!tsl.begin())
+  {
     /* There was a problem detecting the ADXL345 ... check your connections */
-   // Serial.print("Ooops, no TSL2561 detected ... Check your wiring or I2C ADDR!");
-   // while(1);
-  //}
+    Serial.print("Ooops, no TSL2561 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
   
   /* Display some basic information on this sensor */
-  //displaySensorDetails();
+  displaySensorDetails();
   
   /* Setup the sensor gain and integration time */
-  //configureSensor();
+  configureSensor();
   
   /* We're ready to go! */
   Serial.println("");
@@ -208,11 +203,11 @@ void setup(void)
 
 void loop(void) 
 {  
-  /* Calculate Luminocity using TSL2561 Library Sensor Event*/
-  //sensors_event_t event;
- // tsl.getEvent(&event);
+  /* Calculate Luminocity using TSL2561 Library Sensor Event
+  sensors_event_t event;
+  tsl.getEvent(&event);
  
-  /*
+  
   if (event.light)
   {
     Serial.print(event.light); 
@@ -223,14 +218,18 @@ void loop(void)
   {
     Serial.println("Sensor overload"); 
   }
-  */
+  
   /* Calculate Soil Moisture Level using Sparkfun 13322 VIN pin */
 
-  int soil = analogRead(A3);
+  uint16_t broadband = 0;
+  uint16_t infrared = 0;
+  tsl.getLuminosity (&broadband, &infrared);
+
+  int soil = analogRead(MoistureIn);
   float temp = getTemp();
 
-  int uvLevel = averageAnalogRead(UVOUT);
-  int refLevel = averageAnalogRead(REF_3V3);
+  int uvLevel = averageAnalogRead(UVIn);
+  int refLevel = averageAnalogRead(UVRef);
 
   float outputVoltage = 3.3 / refLevel * uvLevel;
   float uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0);
@@ -242,7 +241,9 @@ void loop(void)
   Serial.println(temp);
    Serial.print(" / UV Intensity (mW/cm^2): ");
   Serial.println(uvIntensity);
-  //Serial.print("light");
-  //Serial.println(light);
-  delay(500);
+  Serial.print("visual light: ");
+  Serial.println(broadband);
+  Serial.print("Infrared Light: ");
+  Serial.println(infrared);
+  delay(2000);
 }
