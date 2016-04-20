@@ -1,9 +1,13 @@
 #include <Wire.h>
+#include <VirtualWire.h>
+
 #include "OneWire.h"
 #include "Adafruit_TSL2561_U.h"
 #include "group.h"
 
 OneWire ds(TempIn); 
+char SoilSensorCharMsg[4]; 
+char CharBig[10];
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
@@ -198,6 +202,15 @@ void setup(void)
   
   /* We're ready to go! */
   Serial.println("");
+
+    Serial.println("setup");
+    pinMode(13, OUTPUT);
+    // Initialise the IO and ISR
+    //vw_set_tx_pin(1);
+    vw_set_ptt_inverted(true); // Required for DR3100
+    vw_setup(2000);      // Bits per sec
+
+    
 }
 
 
@@ -234,8 +247,9 @@ void loop(void)
   float outputVoltage = 3.3 / refLevel * uvLevel;
   float uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0);
 
-  Serial.print("soil_in");
-  Serial.println("");
+
+  /***Print Sensor Values for Debugging*/
+  Serial.print("soil_in: ");
   Serial.println(soil);
   Serial.println("temperature");
   Serial.println(temp);
@@ -245,5 +259,18 @@ void loop(void)
   Serial.println(broadband);
   Serial.print("Infrared Light: ");
   Serial.println(infrared);
+
+  itoa(soil,SoilSensorCharMsg,10);
+
+
+  Serial.println(SoilSensorCharMsg);
+
+  /*Send Sensor Values in Array*/
+  digitalWrite(13, HIGH); // Flash a light to show transmitting
+  vw_send((uint8_t *)SoilSensorCharMsg, strlen(SoilSensorCharMsg));
+  vw_wait_tx(); // Wait until the whole message is gone
+  digitalWrite(13, LOW);
+
+  /*Delay*/
   delay(2000);
 }
