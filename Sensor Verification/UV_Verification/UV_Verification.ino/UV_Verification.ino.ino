@@ -35,7 +35,7 @@
 */
 
 //Hardware pin definitions
-int UVOUT = A0; //Output from the sensor
+int UVOUT = A2; //Output from the sensor
 int REF_3V3 = A1; //3.3V power on the Arduino board
 
 void setup()

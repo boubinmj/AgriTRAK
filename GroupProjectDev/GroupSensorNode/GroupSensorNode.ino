@@ -5,67 +5,12 @@
 #include "Adafruit_TSL2561_U.h"
 #include "group.h"
 
+//Sets datapin to be used by Temp Sensor
 OneWire ds(TempIn); 
-char SoilSensorCharMsg[4]; 
-char CharBig[10];
 
-/* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
-   which provides a common 'type' for sensor data and some helper functions.
-   
-   To use this driver you will also need to download the Adafruit_Sensor
-   library and include it in your libraries folder.
-
-   You should also assign a unique ID to this sensor for use with
-   the Adafruit Sensor API so that you can identify this particular
-   sensor in any data logs, etc.  To assign a unique ID, simply
-   provide an appropriate value in the constructor below (12345
-   is used by default in this example).
-   
-   Connections
-   ===========
-   Connect SCL to analog 5
-   Connect SDA to analog 4
-   Connect VDD to 3.3V DC
-   Connect GROUND to common ground
-
-   I2C Address
-   ===========
-   The address will be different depending on whether you leave
-   the ADDR pin floating (addr 0x39), or tie it to ground or vcc. 
-   The default addess is 0x39, which assumes the ADDR pin is floating
-   (not connected to anything).  If you set the ADDR pin high
-   or low, use TSL2561_ADDR_HIGH (0x49) or TSL2561_ADDR_LOW
-   (0x29) respectively.
-    
-   History
-   =======
-   2013/JAN/31  - First version (KTOWN)
-*/
-   
+//Instantiates I2C communication ojbect for TSL2651 Visible and Infrared band light sensor   
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
 
-/**************************************************************************/
-/*
-    Displays some basic information on this sensor from the unified
-    sensor API sensor_t type (see Adafruit_Sensor for more information)
-*/
-/**************************************************************************/
-
-void displaySensorDetails(void)
-{
-  sensor_t sensor;
-  tsl.getSensor(&sensor);
-  Serial.println("------------------------------------");
-  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
-  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
-  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
-  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" lux");
-  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" lux");
-  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" lux");  
-  Serial.println("------------------------------------");
-  Serial.println("");
-  delay(500);
-}
 
 /**************************************************************************/
 /*
@@ -87,10 +32,6 @@ void configureSensor(void)
 
   /* Update these values depending on what you've set above! */  
   
-  Serial.println("------------------------------------");
-  Serial.print  ("Gain:         "); Serial.println("Auto");
-  Serial.print  ("Timing:       "); Serial.println("13 ms");
-  Serial.println("------------------------------------");
 }
 
 
@@ -171,7 +112,8 @@ return Temperature;
 
 /**************************************************************************/
 /*
-    Arduino setup function (automatically called at startup)
+    Arduino setup function
+    Configures Pin I/O and Serial settings
 */
 /**************************************************************************/
 void setup(void) 
@@ -186,7 +128,7 @@ void setup(void)
   pinMode(UVIn, INPUT);
   pinMode(UVRef, INPUT);
   
-  /* Initialise the sensor */
+  /* Debugging TSL */
   if(!tsl.begin())
   {
     /* There was a problem detecting the ADXL345 ... check your connections */
@@ -194,21 +136,16 @@ void setup(void)
     while(1);
   }
   
-  /* Display some basic information on this sensor */
-  displaySensorDetails();
-  
-  /* Setup the sensor gain and integration time */
+  //Configures TSL frame rate and signal amplification
   configureSensor();
   
-  /* We're ready to go! */
-  Serial.println("");
 
-    Serial.println("setup");
-    pinMode(13, OUTPUT);
-    // Initialise the IO and ISR
-    //vw_set_tx_pin(1);
-    vw_set_ptt_inverted(true); // Required for DR3100
-    vw_setup(2000);      // Bits per sec
+  Serial.println("Degbug");
+  pinMode(13, OUTPUT);
+  // Initialise the IO and ISR for RF Communication
+  //vw_set_tx_pin(1);
+  vw_set_ptt_inverted(true); // Required for DR3100
+  vw_setup(2000);      // Bits per sec
 
     
 }
@@ -216,29 +153,17 @@ void setup(void)
 
 void loop(void) 
 {  
-  /* Calculate Luminocity using TSL2561 Library Sensor Event
-  sensors_event_t event;
-  tsl.getEvent(&event);
- 
-  
-  if (event.light)
-  {
-    Serial.print(event.light); 
-    Serial.println(" lux");
-  }
-  
-  else
-  {
-    Serial.println("Sensor overload"); 
-  }
-  
-  /* Calculate Soil Moisture Level using Sparkfun 13322 VIN pin */
+
+  delay(1000);
+  const char *msg = "hello";
 
   uint16_t broadband = 0;
   uint16_t infrared = 0;
   tsl.getLuminosity (&broadband, &infrared);
+  
 
   int soil = analogRead(MoistureIn);
+  
   float temp = getTemp();
 
   int uvLevel = averageAnalogRead(UVIn);
@@ -251,23 +176,21 @@ void loop(void)
   /***Print Sensor Values for Debugging*/
   Serial.print("soil_in: ");
   Serial.println(soil);
-  Serial.println("temperature");
+  Serial.print("temperature: ");
   Serial.println(temp);
-   Serial.print(" / UV Intensity (mW/cm^2): ");
+  Serial.print("UV Intensity (mW/cm^2): ");
   Serial.println(uvIntensity);
-  Serial.print("visual light: ");
+  Serial.print("visual light (lux): ");
   Serial.println(broadband);
-  Serial.print("Infrared Light: ");
+  Serial.print("Infrared Light (lux): ");
   Serial.println(infrared);
 
-  itoa(soil,SoilSensorCharMsg,10);
-
-
-  Serial.println(SoilSensorCharMsg);
+  
+  
 
   /*Send Sensor Values in Array*/
   digitalWrite(13, HIGH); // Flash a light to show transmitting
-  vw_send((uint8_t *)SoilSensorCharMsg, strlen(SoilSensorCharMsg));
+  vw_send((uint8_t *)msg, strlen(msg));
   vw_wait_tx(); // Wait until the whole message is gone
   digitalWrite(13, LOW);
 
