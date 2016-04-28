@@ -5,12 +5,38 @@
 #include "Adafruit_TSL2561_U.h"
 #include "group.h"
 
+char msg[30];
+int soil;
+int temp;
+int uv;
+uint16_t broadband = 0;
+uint16_t infrared = 0;
+
 //Sets datapin to be used by Temp Sensor
 OneWire ds(TempIn); 
 
 //Instantiates I2C communication ojbect for TSL2651 Visible and Infrared band light sensor   
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
 
+
+int readSoil(){
+   return analogRead(MoistureIn);
+}
+
+int readTemp(){
+   float tempFloat = getTemp();
+   return tempFloat*100;
+}
+
+int readUV(){
+  int uvLevel = averageAnalogRead(UVIn);
+  int refLevel = averageAnalogRead(UVRef);
+
+  float outputVoltage = 3.3 / refLevel * uvLevel;
+  float uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0);
+
+  return uvIntensity*100;
+}
 
 /**************************************************************************/
 /*
@@ -109,6 +135,53 @@ return Temperature;
 
 }
 
+/**************************************************************************/
+/*
+    Method transmits the Message Char Array to the Receiver node 
+    Utilizes the VirtualWire Class for Arduino RF Link Communication
+    Defualt TX pin is Digital I/O pin 12
+*/
+/**************************************************************************/
+
+void transmit(){
+  digitalWrite(13, HIGH); // Flash a light to show transmitting
+  vw_send((uint8_t *)msg, strlen(msg));
+  vw_wait_tx(); // Wait until the whole message is gone
+  digitalWrite(13, LOW);
+}
+
+String messageBlock(){
+
+  String sensorString = "";
+  
+  sensorString += soil;
+  sensorString += '/';
+  sensorString += temp;
+  sensorString += '/';
+  sensorString += uv;
+  sensorString += '/';
+  sensorString += broadband;
+  sensorString += '/';
+  sensorString += infrared;
+
+  return sensorString;
+}
+
+void debug(){
+  Serial.print("soil_in: ");
+  Serial.println(soil);
+  Serial.print("temperature: ");
+  Serial.println(temp);
+  Serial.print("UV Intensity (mW/cm^2): ");
+  Serial.println(uv);
+  Serial.print("visual light (lux): ");
+  Serial.println(broadband);
+  Serial.print("Infrared Light (lux): ");
+  Serial.println(infrared);
+
+  Serial.println("Message: ");
+  Serial.println(msg);
+}
 
 /**************************************************************************/
 /*
@@ -154,60 +227,22 @@ void setup(void)
 void loop(void) 
 {  
 
-  //delay(1000);
-  char msg[30];
-  String sensorString = "";
+  /*get sensor data*/
+  tsl.getLuminosity (&broadband, &infrared);  
+  soil = readSoil();
+  temp = readTemp();
+  uv = readUV();
 
-  uint16_t broadband = 0;
-  uint16_t infrared = 0;
-  tsl.getLuminosity (&broadband, &infrared);
+  /*Puts all sensor data into a char array with '/' deliminatior*/
+  String str = messageBlock();
+  str.toCharArray(msg, 30);
+
+  /*prints all sensor and message data to serial monitor for debugging purposes*/
+  debug();
   
-
-  int soil = analogRead(MoistureIn);
+  /*Transmitt Data to Receiver Node*/
+  transmit();
   
-  float temp = getTemp();
-
-  int uvLevel = averageAnalogRead(UVIn);
-  int refLevel = averageAnalogRead(UVRef);
-
-  float outputVoltage = 3.3 / refLevel * uvLevel;
-  float uvIntensity = mapfloat(outputVoltage, 0.99, 2.8, 0.0, 15.0);
-
-
-  /***Print Sensor Values for Debugging*/
-  Serial.print("soil_in: ");
-  Serial.println(soil);
-  Serial.print("temperature: ");
-  Serial.println(temp);
-  Serial.print("UV Intensity (mW/cm^2): ");
-  Serial.println(uvIntensity);
-  Serial.print("visual light (lux): ");
-  Serial.println(broadband);
-  Serial.print("Infrared Light (lux): ");
-  Serial.println(infrared);
-
-  
-  sensorString += soil;
-  sensorString += '/';
-  sensorString += temp;
-  sensorString += '/';
-  sensorString += uvIntensity;
-  sensorString += '/';
-  sensorString += broadband;
-  sensorString += '/';
-  sensorString += infrared;
-
-  sensorString.toCharArray(msg, 30);
-
-  Serial.println("Message: ");
-  Serial.println(msg);
-
-  /*Send Sensor Values in Array*/
-  digitalWrite(13, HIGH); // Flash a light to show transmitting
-  vw_send((uint8_t *)msg, strlen(msg));
-  vw_wait_tx(); // Wait until the whole message is gone
-  digitalWrite(13, LOW);
-
   /*Delay*/
   delay(2000);
 }
