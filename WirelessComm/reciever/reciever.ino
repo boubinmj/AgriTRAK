@@ -31,6 +31,18 @@ void setup()
 }
 void loop()
 {
+    char** sensorData_parsed;
+    char* sensorData;  
+    const char delim[2] = "/";
+
+    char soil[4];
+    char temp[6];
+    char uv[5];
+    char broadBand[6];
+    char infraRed[4];
+
+    int i = 1;
+    
     uint8_t buf[VW_MAX_MESSAGE_LEN];
     uint8_t buflen = VW_MAX_MESSAGE_LEN;
     if (vw_get_message(buf, &buflen)) // Non-blocking
@@ -53,14 +65,29 @@ void loop()
         //String must be terminated to enable use of atoi function
         sensorMsg[buflen] = '\0';
 
-        //Convert String to Int Value
-        SensorData = atoi(sensorMsg);
-
-        //Debuging
-        Serial.print("Sensor Data: ");
-        Serial.print(SensorData);
+        Serial.print("Sensor Data 1: ");
+        Serial.print(sensorMsg);
         Serial.println("");
 
+        //Convert String to Int Value
+
+        sensorData = strtok(sensorMsg, delim);
+
+        Serial.println("SensorData: ");
+        Serial.println(sensorData);
+
+        while(sensorData != NULL){
+           sensorData = strtok(NULL, delim);
+           Serial.println(sensorData);
+           sensorData_parsed[i] = sensorData;
+           i++;
+        }
+
+        
+        //int testing = atoi(sensorData_parsed[3]);
+        //Serial.println(testing);
+       
+        
         //Set LED to LOW
         //indicating end of message transmission
         digitalWrite(13, LOW);

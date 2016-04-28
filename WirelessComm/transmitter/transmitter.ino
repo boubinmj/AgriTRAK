@@ -20,7 +20,23 @@ void setup()
 }
 void loop()
 {
-    const char *msg = "hello";
+    char msg[50];
+    String bigString = "";
+    
+    int sensor_int = 10;
+
+    bigString += sensor_int;
+    bigString += '/';
+    bigString += 200;
+
+    Serial.print("string val: ");
+    Serial.println(bigString);
+
+    bigString.toCharArray(msg, 50);
+
+    Serial.print("char val: ");
+    Serial.println(msg);
+    
     digitalWrite(13, HIGH); // Flash a light to show transmitting
     vw_send((uint8_t *)msg, strlen(msg));
     vw_wait_tx(); // Wait until the whole message is gone

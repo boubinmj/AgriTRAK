@@ -154,8 +154,9 @@ void setup(void)
 void loop(void) 
 {  
 
-  delay(1000);
-  const char *msg = "hello";
+  //delay(1000);
+  char msg[30];
+  String sensorString = "";
 
   uint16_t broadband = 0;
   uint16_t infrared = 0;
@@ -186,7 +187,20 @@ void loop(void)
   Serial.println(infrared);
 
   
-  
+  sensorString += soil;
+  sensorString += '/';
+  sensorString += temp;
+  sensorString += '/';
+  sensorString += uvIntensity;
+  sensorString += '/';
+  sensorString += broadband;
+  sensorString += '/';
+  sensorString += infrared;
+
+  sensorString.toCharArray(msg, 30);
+
+  Serial.println("Message: ");
+  Serial.println(msg);
 
   /*Send Sensor Values in Array*/
   digitalWrite(13, HIGH); // Flash a light to show transmitting
