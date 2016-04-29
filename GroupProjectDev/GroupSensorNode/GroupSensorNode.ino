@@ -153,7 +153,9 @@ void transmit(){
 String messageBlock(){
 
   String sensorString = "";
-  
+
+  sensorString += 'x';
+  sensorString += '/';
   sensorString += soil;
   sensorString += '/';
   sensorString += temp;
@@ -163,6 +165,8 @@ String messageBlock(){
   sensorString += broadband;
   sensorString += '/';
   sensorString += infrared;
+  sensorString += '/';
+  sensorString += '0';
 
   return sensorString;
 }
