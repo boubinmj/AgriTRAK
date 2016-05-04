@@ -127,8 +127,8 @@ void loop()
     s+="Serial Monitor Reading 3: ";
     s+=serialReading3;
     s+="<br><br>";
-    s+="Serial Monitor Reading 4: ";
-    s+=serialReading4;
+    //s+="Serial Monitor Reading 4: ";
+    //s+=serialReading4;
     s+="<br><br>";
     s+="</h3>";
     s+="</body>";
@@ -143,7 +143,9 @@ void loop()
     s+="</head>";
 
     s+="<body>";
-    s+="<h1>Welcome to Agritrak.</h1><br>"; 
+    s+="<h1>Welcome to AgriTrak.</h1><br>"; 
+    s+="<p>AgriTRAK is a sensor network project that is designed to monitor the necessary metrics of an agricultural system.<br></p>";  
+    s+="<p>AgriTRAK is being designed to support sensors that will be useful in Traditional Farming, Hydroponic, and Aquaponic Systems.<br></p>";
     s+="<p>Try /read to view our sensor data.</p>";
     //s+="<a href='https://github.com/boubinmj/AgriTRAK'>View our Github Project</a>";
     s+="</body>";

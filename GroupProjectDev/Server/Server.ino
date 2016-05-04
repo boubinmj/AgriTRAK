@@ -67,39 +67,12 @@ void loop()
     return;
   }
 
-  // Read the first line of the request
-  String req = client.readStringUntil('\r');
-  Serial.println(req);
-  client.flush();
-
-  // Match the request
-  int val = -1; // We'll use 'val' to keep track of both the
-                // request type (read/set) and value if set.
-  if (req.indexOf("/read") != -1)
-    val = -2; // Will print pin reads
-  // Otherwise request will be invalid. We'll say as much in HTML
-
-  client.flush();
 
   // Prepare the response. Start with the common header:
   String s = "HTTP/1.1 200 OK\r\n";
   s += "Content-Type: text/html\r\n\r\n";
   s += "<!DOCTYPE HTML>\r\n<html>\r\n";
 
-  if (val == -2)
-  { // If we're reading pins, print out those values:
-
-    //added//
-    ///////
-    /* floats
-    int incoming = Serial.available();
-    if(incoming>0){
-      float temp = Serial.parseFloat();
-      if(temp > 0.0){
-        serialVal = temp;
-      }
-    } 
-    */
     //strings
     int incoming = Serial.available();
     if(incoming>0){
@@ -109,47 +82,39 @@ void loop()
         serialReading4 = Serial.readStringUntil('/');
     }
     delay(500);
-    s+="<head>";
-    s+="<style> body {background-color:lightgrey;}";
-    s+="h3 {text-align:center; font-family:verdana; color:#3d3d29;}";
-    s+="p {text-align:center; font-family:verdana; color:#3d3d29;}";
-    s+="</style>";
-    s+="</head>";
     
-    s+="<body>";
-    s+="<h3>";
-    s+="Serial Monitor Reading 1: ";
-    s+=String(serialReading);
-    s+="<br><br>"; // Go to the next line.
-    s+="Serial Monitor Reading 2: ";
-    s+=serialReading2;
-    s+="<br><br>";
-    s+="Serial Monitor Reading 3: ";
-    s+=serialReading3;
-    s+="<br><br>";
-    s+="Serial Monitor Reading 4: ";
-    s+=serialReading4;
-    s+="<br><br>";
-    s+="</h3>";
-    s+="</body>";
-  }
-  else
-  {
+
     s+="<head>";
     s+="<style> body {background-color:lightgrey;}";
     s+="h1 {text-align:center; font-family:verdana; color:#3d3d29;}";
-    s+="p {text-align:center; font-family:verdana; color:#3d3d29;}";
+    s+="h3 {text-align:center; font-family:verdana; color:#3d3d29;}";
+    s+="h5 {text-align:center; font-family:verdana; color:#3d3d29;}";
     s+="</style>";
     s+="</head>";
 
     s+="<body>";
-    s+="<h1>Welcome to AgriTrak.</h1><br>"; 
-    s+="<p>AgriTRAK is a sensor network project that is designed to monitor the necessary metrics of an agricultural system.<br></p>";  
-    s+="<p>AgriTRAK is being designed to support sensors that will be useful in Traditional Farming, Hydroponic, and Aquaponic Systems.<br></p>";
-    s+="<p>Try /read to view our sensor data.</p>";
+    s+="<h1>Welcome to AgriTrak.</h1>"; 
+    s+="<h3><br>AgriTRAK is a sensor network project that is designed to monitor the necessary metrics of an agricultural system.<br><br><br></h3>";  
+    //s+="<p>AgriTRAK is being designed to support sensors that will be useful in Traditional Farming, Hydroponic, and Aquaponic Systems.<br></p>";
+    
+    s+="<h5>";
+    //s+="Serial Monitor Reading 1: ";
+    s+=String(serialReading);
+    s+="<br><br>"; // Go to the next line.
+    //s+="Serial Monitor Reading 2: ";
+    s+=serialReading2;
+    s+="<br><br>";
+    //s+="Serial Monitor Reading 3: ";
+    s+=serialReading3;
+    s+="<br><br>";
+    //s+="Serial Monitor Reading 4: ";
+    //s+=serialReading4;
+    s+="<br><br>";
+    s+="</h5>";
+    
     //s+="<a href='https://github.com/boubinmj/AgriTRAK'>View our Github Project</a>";
     s+="</body>";
-  }
+  
   s += "</html>\n";
 
   // Send the response to the client
