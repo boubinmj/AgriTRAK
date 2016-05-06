@@ -15,9 +15,11 @@ uint16_t infrared = 0;
 
 //threshold for determing actuators
 int soilThreshold = 500;
-int waterTime = 2000;
+int pumpOnTime = 5;
+int pumpTimeCounter = 0;
+bool countPumpTime = false;
 
-int uvThreshold = 5;
+int uvThreshold = 1;
 //amount of time to keep light on
 int lightOnTime = 10;
 int lightTimeCounter = 0;
@@ -30,18 +32,20 @@ OneWire ds(TempIn);
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
 
 
-void waterSoil(){
+void pumpOn(){
   digitalWrite(pump, HIGH);
-  delay(waterTime);
+}
+
+void pumpOff(){
   digitalWrite(pump,LOW);
 }
 
 void growLightOn(){
-  digitalWrite(growLight,HIGH);
+  digitalWrite(growLight,LOW);
 }
 
 void growLightOff(){
-  digitalWrite(growLight,LOW);
+  digitalWrite(growLight,HIGH);
 }
 
 int readSoil(){
@@ -223,6 +227,9 @@ void initializePins(){
   pinMode(pump,OUTPUT);
   pinMode(growLight,OUTPUT);
   pinMode(13, OUTPUT);
+
+  //growLight is active low, so start high
+  digitalWrite(growLight,HIGH);
 }
 
 void setup(void) 
@@ -278,28 +285,43 @@ void loop(void)
   /*Transmitt Data to Receiver Node*/
   transmit();
 
+
   //if soil moisture level is below threshold, call waterSoil
-  if(soil < soilThreshold){
-    Serial.println("Soil below threshold");
-    waterSoil();
+  if((soil < soilThreshold) && (pumpTimeCounter < pumpOnTime)){
+    countPumpTime = true;
+    pumpOn();
   }
-  
-  if((uv < uvThreshold) && (lightTimeCounter <= lightOnTime )){
+  else if(pumpTimeCounter == pumpOnTime){
+    Serial.println("Pump cycle over");
+    pumpTimeCounter = 0;
+    countPumpTime = false;
+    pumpOff();
+  }
+
+  //if the uv level is lower than the threshold and the light hasn't been on for specified time
+  if((uv < uvThreshold) && (lightTimeCounter < lightOnTime )){
     countLightTime = true;
-    Serial.print("lightTimeCounter: ");
-    Serial.println(lightTimeCounter);
     growLightOn();
   }
-  else if((uv >= uvThreshold) || (lightTimeCounter >= lightOnTime)){
-    if(lightTimeCounter >= lightOnTime){
-      lightTimeCounter = 0;
-      countLightTime = false;
-      growLightOff();
-    }
+  else if (lightTimeCounter == lightOnTime){
+    Serial.println("Light cycle over");
+    lightTimeCounter = 0;
+    countLightTime = false;
+    growLightOff();
   }
+   
+  Serial.print("pumpTimeCounter: ");
+  Serial.println(pumpTimeCounter);
+  Serial.print("lightTimeCounter: ");
+  Serial.println(lightTimeCounter);
+  
 
   if(countLightTime){
     lightTimeCounter++;
+  }
+  
+  if(countPumpTime){
+    pumpTimeCounter++;
   }
   
   /*Delay*/
