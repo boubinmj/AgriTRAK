@@ -16,6 +16,7 @@ String serialReading4 = "No reading";
 
 WiFiServer server(80);
 
+
 void initHardware()
 {
   Serial.begin(9600);
@@ -79,7 +80,6 @@ void loop()
         serialReading = Serial.readStringUntil('/');
         serialReading2 = Serial.readStringUntil('/');
         serialReading3 = Serial.readStringUntil('/');
-        serialReading4 = Serial.readStringUntil('/');
     }
     delay(500);
     
