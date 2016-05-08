@@ -8,6 +8,9 @@
 
 #define TempIn			(10)			//Temp Sensor VIN
 
+#define growLight   (3)
+#define pump        (2) //pump pin
+
 /********************************
  *Define ANALOG Pins
 ********************************/

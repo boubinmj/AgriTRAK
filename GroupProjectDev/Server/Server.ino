@@ -27,15 +27,7 @@ void setupWiFi()
 {
   WiFi.mode(WIFI_AP);
 
-  // Do a little work to get a unique-ish name. Append the
-  // last two bytes of the MAC (HEX'd) to "Thing-":
-  uint8_t mac[WL_MAC_ADDR_LENGTH];
-  WiFi.softAPmacAddress(mac);
-  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
-                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
-  macID.toUpperCase();
-  String AP_NameString = "AgriTrak " + macID;
-
+  String AP_NameString = "AgriTrak";
   char AP_NameChar[AP_NameString.length() + 1];
   memset(AP_NameChar, 0, AP_NameString.length() + 1);
 
@@ -69,7 +61,6 @@ void loop()
   }
 
 
-  // Prepare the response. Start with the common header:
   String s = "HTTP/1.1 200 OK\r\n";
   s += "Content-Type: text/html\r\n\r\n";
   s += "<!DOCTYPE HTML>\r\n<html>\r\n";
@@ -95,25 +86,18 @@ void loop()
 
     s+="<body>";
     s+="<h1>Welcome to AgriTrak.</h1>"; 
-    s+="<h3><br>AgriTRAK is a sensor network project that is designed to monitor the necessary metrics of an agricultural system.<br><br><br></h3>";  
-    //s+="<p>AgriTRAK is being designed to support sensors that will be useful in Traditional Farming, Hydroponic, and Aquaponic Systems.<br></p>";
+    s+="<h3><br>AgriTRAK is a sensor network project that is designed to monitor the necessary metrics of an agricultural system.<br><br><br></h3>"; 
     
     s+="<h5>";
-    //s+="Serial Monitor Reading 1: ";
     s+=String(serialReading);
     s+="<br><br>"; // Go to the next line.
-    //s+="Serial Monitor Reading 2: ";
     s+=serialReading2;
     s+="<br><br>";
-    //s+="Serial Monitor Reading 3: ";
     s+=serialReading3;
     s+="<br><br>";
-    //s+="Serial Monitor Reading 4: ";
     s+=serialReading4;
     s+="<br><br>";
     s+="</h5>";
-    
-    //s+="<a href='https://github.com/boubinmj/AgriTRAK'>View our Github Project</a>";
     s+="</body>";
   
   s += "</html>\n";
@@ -121,10 +105,6 @@ void loop()
   // Send the response to the client
   client.print(s);
   delay(1);
-  Serial.println("Client disonnected");
-
-  // The client will actually be disconnected 
-  // when the function returns and 'client' object is detroyed
 }
 
 
