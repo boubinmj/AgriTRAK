@@ -293,21 +293,21 @@ void loop(void)
   }
   else if(pumpTimeCounter == pumpOnTime){
     Serial.println("Pump cycle over");
+    pumpOff();
     pumpTimeCounter = 0;
     countPumpTime = false;
-    pumpOff();
   }
 
   /* Actuator logic for uv level */
-  if((uv < uvThreshold) && (lightTimeCounter < lightOnTime )){
+  if(uv < uvThreshold){
     countLightTime = true;
     growLightOn();
   }
   else if (lightTimeCounter == lightOnTime){
     Serial.println("Light cycle over");
+    growLightOff();
     lightTimeCounter = 0;
     countLightTime = false;
-    growLightOff();
   }
    
   Serial.print("pumpTimeCounter: ");
