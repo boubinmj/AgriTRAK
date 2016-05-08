@@ -39,19 +39,25 @@ void setup()
     vw_rx_start();       // Start the receiver PLL running
 }
 
-String formatMessage(int soil, int temp, int uv){
+String formatMessage(int soil, int temp, int uv, int broadband){
   String trans = "";
   
   float tempC = float(temp)/100.0;
   float uvC = float(uv)/100.0;
+  float broadbandC = float(broadband)/100.0;
+  float soilC = float(soil)/1023.0;
         
   trans="Soil Moisture Level: ";
-  trans+=String(soil);
-  trans+="/Temperature (in C): ";
+  trans+=String(soilC);
+  trans+="$Temperature (in C): ";
   trans+=String(tempC);
-  trans+="/UV: ";
+  trans+="$UV: ";
   trans+=String(uvC);
-  trans+="/";
+  trans+=" mW/cm^2";
+  trans+="$Visible Light: ";
+  trans+=String(broadbandC);
+  trans+=" lux";
+  trans+="$";
 
   return trans;
 }
@@ -124,7 +130,7 @@ void decodeMsg(){
         
         
         //create sendable message
-        transmission = formatMessage(soil,temp,uv);
+        transmission = formatMessage(soil,temp,uv,broadband);
         
         Serial.println(transmission);
 

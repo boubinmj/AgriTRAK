@@ -20,7 +20,6 @@ int pumpTimeCounter = 0;
 bool countPumpTime = false;
 
 int uvThreshold = 1;
-//amount of time to keep light on
 int lightOnTime = 10;
 int lightTimeCounter = 0;
 bool countLightTime = false;
@@ -33,11 +32,11 @@ Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 1234
 
 
 void pumpOn(){
-  digitalWrite(pump, HIGH);
+  digitalWrite(pump, LOW);
 }
 
 void pumpOff(){
-  digitalWrite(pump,LOW);
+  digitalWrite(pump,HIGH);
 }
 
 void growLightOn(){
@@ -286,8 +285,9 @@ void loop(void)
   transmit();
 
 
-  //if soil moisture level is below threshold, call waterSoil
+  /* Actuator logic for soil moisture */
   if((soil < soilThreshold) && (pumpTimeCounter < pumpOnTime)){
+    Serial.println("Pump on");
     countPumpTime = true;
     pumpOn();
   }
@@ -298,7 +298,7 @@ void loop(void)
     pumpOff();
   }
 
-  //if the uv level is lower than the threshold and the light hasn't been on for specified time
+  /* Actuator logic for uv level */
   if((uv < uvThreshold) && (lightTimeCounter < lightOnTime )){
     countLightTime = true;
     growLightOn();
